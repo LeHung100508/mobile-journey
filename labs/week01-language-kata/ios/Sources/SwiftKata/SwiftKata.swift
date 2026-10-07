@@ -4,9 +4,12 @@
 @main
 struct SwiftKata {
     static func main() {
-        runGroupA()
-        runGroupB()
-        runGroupC()
-        runGroupD()
+//        runGroupA()
+//        runGroupB()
+//        runGroupC()
+//        runGroupD()
+        runGroupE()
+        runGroupF()
+        runGroupG()
     }
 }
