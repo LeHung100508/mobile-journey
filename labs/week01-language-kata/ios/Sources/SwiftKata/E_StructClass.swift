@@ -35,12 +35,12 @@ func addLap(_ item: inout StopWatch, lap: Int) {
 
 func runGroupE() {
     print("===========RunGroupE===========")
-    var a = PointValue(x: 1, y: 2)
-    var b = a
-    b.x = 3
-    print("E1: \(a.x), \(b.x)")
-    // Dự đoán: 1,3
-    // Kết quả thực tế: 1,3
+    let r1 = PointRef(x: 1, y: 2)
+    let r2 = r1
+    r2.x = 3
+    print("E1 class: \(r1.x), \(r2.x)")
+    // Dự đoán: 3,3
+    // Thực tế: 3,3
     
     let pointStruct = PointValue(x: 21,y: 50)
     let pointClass = PointRef(x: 12, y: 31)
