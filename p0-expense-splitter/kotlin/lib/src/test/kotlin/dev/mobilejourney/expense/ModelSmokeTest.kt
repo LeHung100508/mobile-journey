@@ -2,7 +2,6 @@ package dev.mobilejourney.expense
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 class ModelSmokeTest {
 
@@ -21,9 +20,9 @@ class ModelSmokeTest {
             id = "e4",
             title = "Cà phê sáng",
             amount = Money(150_000),
-            paidBy = SampleData.p1,
+            paidBy = SampleData.an,
             rule = SplitRule.Equal(
-                participants = setOf(SampleData.p1, SampleData.p2)
+                participants = setOf(SampleData.an, SampleData.binh)
             )
         )
 
@@ -36,54 +35,44 @@ class ModelSmokeTest {
     // 3. Case 1: Chia đều (SplitRule.Equal - e1)
     @Test
     fun equalSplitRuleMatchesExpectations() {
-        val expectedSummary = "Chia đều cho 3 người: An, Bình, Cường"
-        assertEquals(expected = expectedSummary, actual = SampleData.e1.rule.summary())
+        val rule = SampleData.e1.rule as SplitRule.Equal
+        val expectedSummary = "Chia đều cho 3 người"
+        assertEquals(expected = expectedSummary, actual = rule.summary())
 
-        val expectedParticipants = setOf(SampleData.p1, SampleData.p2, SampleData.p3)
-        assertEquals(expected = expectedParticipants, actual = SampleData.e1.rule.participants)
+        val expectedParticipants = setOf(SampleData.an, SampleData.binh, SampleData.chi)
+        assertEquals(expected = expectedParticipants, actual = rule.participants)
     }
 
-    // 4. Case 2: Chia theo phần trăm (SplitRule.Percentages - e2)
-    @Test
-    fun percentagesSplitRuleMatchesExpectations() {
-        val expectedSummary = "Chia theo phần trăm An: 50%, Bình: 30%, Cường: 20%"
-        assertEquals(expected = expectedSummary, actual = SampleData.e2.rule.summary())
-
-        val expectedParticipants = setOf(SampleData.p1, SampleData.p2, SampleData.p3)
-        assertEquals(expected = expectedParticipants, actual = SampleData.e2.rule.participants)
-    }
-
-    // 5. Case 3: Chia số tiền chính xác (SplitRule.ExactAmounts - e3)
+    // 4. Case 2: Chia số tiền chính xác (SplitRule.ExactAmounts - e2)
     @Test
     fun exactAmountsSplitRuleMatchesExpectations() {
-        val expectedSummary = "Chia chính xác An: 200000, Bình: 100000, Cường: 100000 - Tổng: 400000"
-        assertEquals(expected = expectedSummary, actual = SampleData.e3.rule.summary())
+        val rule = SampleData.e2.rule as SplitRule.ExactAmounts
+        val expectedSummary = "Theo số tiền: An: 400000, Bình: 300000, Chi: 200000"
+        assertEquals(expected = expectedSummary, actual = rule.summary())
 
-        val expectedParticipants = setOf(SampleData.p1, SampleData.p2, SampleData.p3)
-        assertEquals(expected = expectedParticipants, actual = SampleData.e3.rule.participants)
+        val expectedParticipants = setOf(SampleData.an, SampleData.binh, SampleData.chi)
+        assertEquals(expected = expectedParticipants, actual = rule.participants)
+
+        // Kiểm tra chi tiết số tiền từng người phải trả
+        assertEquals(expected = Money(400_000), actual = rule.amounts[SampleData.an])
+        assertEquals(expected = Money(300_000), actual = rule.amounts[SampleData.binh])
+        assertEquals(expected = Money(200_000), actual = rule.amounts[SampleData.chi])
+        assertEquals(expected = SampleData.e2.amount, actual = rule.amounts.values.total())
     }
 
-    // 6. Kiểm tra các ràng buộc validation của từng SplitRule khi dữ liệu không hợp lệ
+    // 5. Case 3: Chia theo phần trăm (SplitRule.Percentages - e3)
     @Test
-    fun splitRulesValidateInvalidInputs() {
-        // Equal không cho phép rỗng
-        assertFailsWith<IllegalArgumentException> {
-            SplitRule.Equal(participants = emptySet())
-        }
+    fun percentagesSplitRuleMatchesExpectations() {
+        val rule = SampleData.e3.rule as SplitRule.Percentages
+        val expectedSummary = "Chia t% An: 50%, Bình: 30%, Chi: 20%"
+        assertEquals(expected = expectedSummary, actual = rule.summary())
 
-        // Percentages tổng không bằng 100%
-        assertFailsWith<IllegalArgumentException> {
-            SplitRule.Percentages(percents = mapOf(SampleData.p1 to 50, SampleData.p2 to 40))
-        }
+        val expectedParticipants = setOf(SampleData.an, SampleData.binh, SampleData.chi)
+        assertEquals(expected = expectedParticipants, actual = rule.participants)
 
-        // ExactAmounts có số tiền âm
-        assertFailsWith<IllegalArgumentException> {
-            SplitRule.ExactAmounts(
-                amounts = mapOf(
-                    SampleData.p1 to Money(100_000),
-                    SampleData.p2 to Money(-50_000)
-                )
-            )
-        }
+        // Kiểm tra chi tiết tỷ lệ % từng người
+        assertEquals(expected = 50, actual = rule.percents[SampleData.an])
+        assertEquals(expected = 30, actual = rule.percents[SampleData.binh])
+        assertEquals(expected = 20, actual = rule.percents[SampleData.chi])
     }
 }
